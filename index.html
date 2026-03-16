@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galaxy Clock</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan:  #00f5ff;
+    --pink:  #ff2d78;
+    --gold:  #ffd700;
+    --dim:   #0a0a1a;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #000008;
+    overflow: hidden;
+    font-family: 'Rajdhani', sans-serif;
+    color: #fff;
+    cursor: crosshair;
+  }
+
+  /* ── CANVAS (galaxy + particles) ── */
+  #bg { position: fixed; inset: 0; z-index: 0; }
+
+  /* ── NEBULA GLOW LAYERS ── */
+  .nebula {
+    position: fixed; border-radius: 50%; filter: blur(90px);
+    z-index: 1; pointer-events: none; animation: drift 20s ease-in-out infinite alternate;
+  }
+  .n1 { width: 600px; height: 500px; top: -150px; left: -100px;
+        background: radial-gradient(ellipse, rgba(0,120,255,.18) 0%, transparent 70%); }
+  .n2 { width: 500px; height: 600px; bottom: -200px; right: -80px;
+        background: radial-gradient(ellipse, rgba(255,45,120,.14) 0%, transparent 70%);
+        animation-delay: -10s; }
+  .n3 { width: 400px; height: 400px; top: 30%; left: 40%;
+        background: radial-gradient(ellipse, rgba(100,0,255,.10) 0%, transparent 70%);
+        animation-delay: -5s; }
+  @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(30px,20px) scale(1.08); } }
+
+  /* ── SCAN LINE ── */
+  .scanline {
+    position: fixed; inset: 0; z-index: 2; pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(0,245,255,.015) 3px, rgba(0,245,255,.015) 4px
+    );
+  }
+
+  /* ── LAYOUT ── */
+  #app {
+    position: relative; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    width: 100%; height: 100vh;
+    gap: 0;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center; margin-bottom: 36px;
+    animation: fadeDown .8s ease both;
+  }
+  .header .eyebrow {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px; letter-spacing: .4em;
+    color: var(--cyan); opacity: .7;
+    margin-bottom: 6px;
+  }
+  .header h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(22px, 4vw, 38px);
+    font-weight: 900; letter-spacing: .12em;
+    background: linear-gradient(90deg, var(--cyan), #a78bfa, var(--pink));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 18px rgba(0,245,255,.4));
+  }
+  .header .subtitle {
+    font-size: 12px; letter-spacing: .3em;
+    color: rgba(255,255,255,.35); margin-top: 4px;
+  }
+
+  /* ── CARDS GRID ── */
+  .cards {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; width: min(660px, 92vw);
+    animation: fadeUp .9s ease .15s both;
+  }
+
+  .card {
+    position: relative; overflow: hidden;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    padding: 28px 24px 22px;
+    backdrop-filter: blur(12px);
+    transition: transform .2s ease, border-color .2s ease;
+  }
+  .card::after {
+    content: ''; position: absolute;
+    top: 8px; right: 10px; width: 14px; height: 14px;
+    border-top: 1.5px solid; border-right: 1.5px solid;
+    border-radius: 0 4px 0 0; opacity: .5;
+  }
+  /* glass shine sweep */
+  .card .shine {
+    position: absolute; inset: 0; border-radius: 16px;
+    background: linear-gradient(
+      120deg,
+      transparent 0%, transparent 30%,
+      rgba(255,255,255,.08) 50%,
+      transparent 70%, transparent 100%
+    );
+    background-size: 250% 100%;
+    background-position: 200% 0;
+    pointer-events: none;
+    transition: none;
+    opacity: 0;
+  }
+  .card:hover .shine {
+    opacity: 1;
+    animation: shine-sweep .6s ease forwards;
+  }
+  @keyframes shine-sweep {
+    from { background-position: 200% 0; }
+    to   { background-position: -50% 0; }
+  }
+  .card:hover { transform: translateY(-4px); }
+
+  /* accent top bar */
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    border-radius: 16px 16px 0 0;
+  }
+  /* corner brackets */
+  .card::after {
+    content: ''; position: absolute;
+    top: 8px; right: 10px; width: 14px; height: 14px;
+    border-top: 1.5px solid; border-right: 1.5px solid;
+    border-radius: 0 4px 0 0; opacity: .5;
+  }
+  .card-inner-corner {
+    position: absolute; bottom: 8px; left: 10px;
+    width: 14px; height: 14px;
+    border-bottom: 1.5px solid; border-left: 1.5px solid;
+    border-radius: 0 0 0 4px; opacity: .5;
+  }
+
+  /* IST — cyan */
+  .card-ist { border-color: rgba(0,245,255,.2); }
+  .card-ist:hover { border-color: rgba(0,245,255,.45); box-shadow: 0 0 40px rgba(0,245,255,.08); }
+  .card-ist::before { background: linear-gradient(90deg, var(--cyan), transparent); }
+  .card-ist::after, .card-ist .card-inner-corner { border-color: var(--cyan); }
+
+  /* UTC — pink */
+  .card-utc { border-color: rgba(255,45,120,.2); }
+  .card-utc:hover { border-color: rgba(255,45,120,.45); box-shadow: 0 0 40px rgba(255,45,120,.08); }
+  .card-utc::before { background: linear-gradient(90deg, var(--pink), transparent); }
+  .card-utc::after, .card-utc .card-inner-corner { border-color: var(--pink); }
+
+  .zone-badge {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .zone-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px; font-weight: 700; letter-spacing: .2em;
+  }
+  .card-ist .zone-label { color: var(--cyan); }
+  .card-utc .zone-label { color: var(--pink); }
+
+  .offset-tag {
+    font-size: 10px; letter-spacing: .15em;
+    padding: 3px 8px; border-radius: 20px;
+    border: 1px solid; opacity: .6;
+  }
+  .card-ist .offset-tag { border-color: var(--cyan); color: var(--cyan); }
+  .card-utc .offset-tag { border-color: var(--pink); color: var(--pink); }
+
+  /* big time */
+  .time-display {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(30px, 5.5vw, 46px);
+    font-weight: 900; letter-spacing: -.01em;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .card-ist .time-display {
+    background: linear-gradient(90deg, #00f5ff, #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 12px rgba(0,245,255,.5));
+  }
+  .card-utc .time-display {
+    background: linear-gradient(90deg, #ff2d78, #ffa07a);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 12px rgba(255,45,120,.5));
+  }
+
+  .ampm {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: .2em;
+    margin-bottom: 14px; opacity: .8;
+  }
+  .card-ist .ampm { color: var(--cyan); }
+  .card-utc .ampm { color: var(--pink); }
+
+  /* seconds bar */
+  .sec-track {
+    height: 3px; border-radius: 2px;
+    background: rgba(255,255,255,.07);
+    margin-bottom: 14px; overflow: hidden;
+  }
+  .sec-fill {
+    height: 100%; border-radius: 2px;
+    transition: width .6s cubic-bezier(.25,.8,.25,1);
+  }
+  .card-ist .sec-fill { background: linear-gradient(90deg, var(--cyan), #a78bfa); }
+  .card-utc .sec-fill { background: linear-gradient(90deg, var(--pink), #ffa07a); }
+
+  .date-line {
+    font-size: 12px; letter-spacing: .06em;
+    color: rgba(255,255,255,.45);
+  }
+  .zone-full {
+    font-size: 10px; letter-spacing: .1em;
+    color: rgba(255,255,255,.22); margin-top: 3px;
+    text-transform: uppercase;
+  }
+
+  /* ── EPOCH STRIP ── */
+  .epoch-strip {
+    width: min(660px, 92vw);
+    margin-top: 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 10px; padding: 10px 18px;
+    animation: fadeUp .9s ease .3s both;
+  }
+  .epoch-label {
+    font-size: 10px; letter-spacing: .25em; color: rgba(255,255,255,.3);
+    text-transform: uppercase;
+  }
+  .epoch-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px; font-weight: 700;
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(255,215,0,.4);
+    letter-spacing: .05em;
+  }
+  .live-pill {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; letter-spacing: .2em; color: #00ff88;
+  }
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #00ff88;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; box-shadow: 0 0 0 0 rgba(0,255,136,.5); }
+    50%      { opacity:.5; box-shadow: 0 0 0 5px rgba(0,255,136,0); }
+  }
+
+  /* ── 24H TOGGLE ── */
+  .toggle-wrap {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 28px;
+    animation: fadeDown .8s ease .05s both;
+  }
+  .toggle-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px; letter-spacing: .2em;
+    color: rgba(255,255,255,.4);
+    transition: color .3s;
+  }
+  .toggle-label.active { color: var(--cyan); }
+
+  .toggle-track {
+    position: relative; width: 52px; height: 26px;
+    border-radius: 13px;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(0,245,255,.25);
+    cursor: pointer;
+    transition: background .3s, border-color .3s;
+    box-shadow: 0 0 10px rgba(0,245,255,.1);
+  }
+  .toggle-track.on {
+    background: rgba(0,245,255,.12);
+    border-color: rgba(0,245,255,.6);
+    box-shadow: 0 0 16px rgba(0,245,255,.25);
+  }
+  .toggle-thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: rgba(255,255,255,.3);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), background .3s;
+  }
+  .toggle-track.on .toggle-thumb {
+    transform: translateX(26px);
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+  }
+
+  /* hide AM/PM in 24h mode */
+  body.h24 .ampm { opacity: 0; pointer-events: none; }
+
+  /* ── ENTER ANIMATIONS ── */
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp   { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div class="nebula n1"></div>
+<div class="nebula n2"></div>
+<div class="nebula n3"></div>
+<div class="scanline"></div>
+
+<div id="app">
+
+  <div class="header">
+    <div class="eyebrow">&#x2736; TEMPORAL INTERFACE v2.0 &#x2736;</div>
+    <h1>WORLD CLOCK</h1>
+    <div class="subtitle">INDIA &nbsp;/&nbsp; UNIVERSAL TIME</div>
+  </div>
+
+  <div class="toggle-wrap">
+    <span class="toggle-label active" id="lbl-12">12H</span>
+    <div class="toggle-track" id="fmt-toggle" onclick="toggleFormat()">
+      <div class="toggle-thumb"></div>
+    </div>
+    <span class="toggle-label" id="lbl-24">24H</span>
+  </div>
+
+  <div class="cards">
+
+    <!-- IST -->
+    <div class="card card-ist">
+      <div class="shine"></div>
+      <div class="card-inner-corner"></div>
+      <div class="zone-badge">
+        <span class="zone-label">IST</span>
+        <span class="offset-tag">UTC +5:30</span>
+      </div>
+      <div class="time-display" id="ist-time">00:00:00</div>
+      <div class="ampm" id="ist-ampm">AM</div>
+      <div class="sec-track"><div class="sec-fill" id="ist-bar" style="width:0%"></div></div>
+      <div class="date-line" id="ist-date">—</div>
+      <div class="zone-full">India Standard Time</div>
+    </div>
+
+    <!-- UTC -->
+    <div class="card card-utc">
+      <div class="shine"></div>
+      <div class="card-inner-corner"></div>
+      <div class="zone-badge">
+        <span class="zone-label">UTC</span>
+        <span class="offset-tag">UTC +0:00</span>
+      </div>
+      <div class="time-display" id="utc-time">00:00:00</div>
+      <div class="ampm" id="utc-ampm">AM</div>
+      <div class="sec-track"><div class="sec-fill" id="utc-bar" style="width:0%"></div></div>
+      <div class="date-line" id="utc-date">—</div>
+      <div class="zone-full">Coordinated Universal Time</div>
+    </div>
+
+  </div>
+
+  <div class="epoch-strip">
+    <span class="epoch-label">Unix Epoch</span>
+    <span class="epoch-val" id="epoch">—</span>
+    <span class="live-pill"><span class="live-dot"></span>LIVE</span>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   GALAXY + PARTICLE CANVAS
+═══════════════════════════════════════════ */
+const canvas = document.getElementById('bg');
+const ctx    = canvas.getContext('2d');
+let W, H, stars = [], particles = [];
+
+function resize(){
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', () => { resize(); initStars(); });
+
+/* static stars */
+function initStars(){
+  stars = [];
+  const n = Math.floor(W * H / 2200);
+  for(let i = 0; i < n; i++){
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.4 + .2,
+      a: Math.random(),
+      da: (Math.random() - .5) * .008,
+      color: ['#ffffff','#a0d4ff','#ffd6f6','#c0fff0'][Math.floor(Math.random()*4)]
+    });
+  }
+}
+initStars();
+
+/* shooting particles */
+function spawnParticle(){
+  const side = Math.random();
+  let x, y, vx, vy;
+  if(side < .5){ x = Math.random() * W; y = -5; vx = (Math.random()-.5)*.6; vy = Math.random()*1.2+.4; }
+  else          { x = -5; y = Math.random() * H; vx = Math.random()*1.2+.4; vy = (Math.random()-.5)*.6; }
+  particles.push({
+    x, y, vx, vy,
+    life: 1, decay: Math.random()*.004+.002,
+    r: Math.random()*1.8+.5,
+    color: ['#00f5ff','#ff2d78','#a78bfa','#ffd700','#00ff88'][Math.floor(Math.random()*5)],
+    trail: []
+  });
+}
+
+/* draw rotating galaxy core */
+let angle = 0;
+function drawGalaxy(){
+  const cx = W * .5, cy = H * .5;
+  const arms = 3, pointsPerArm = 220;
+  for(let arm = 0; arm < arms; arm++){
+    const baseAngle = (arm / arms) * Math.PI * 2 + angle;
+    for(let j = 0; j < pointsPerArm; j++){
+      const t   = j / pointsPerArm;
+      const r   = t * Math.min(W, H) * .38;
+      const a   = baseAngle + t * 5;
+      const x   = cx + Math.cos(a) * r;
+      const y   = cy + Math.sin(a) * r * .45;
+      const alpha = (1 - t) * .18 * (Math.sin(Date.now()*.0005 + j*.05)*.3+.7);
+      const sz  = (1 - t) * 2.2 + .3;
+      ctx.beginPath();
+      ctx.arc(x, y, sz, 0, Math.PI * 2);
+      ctx.fillStyle = arm === 0 ? `rgba(0,245,255,${alpha})` :
+                      arm === 1 ? `rgba(167,139,250,${alpha})` :
+                                  `rgba(255,45,120,${alpha})`;
+      ctx.fill();
+    }
+  }
+}
+
+function frame(){
+  ctx.clearRect(0, 0, W, H);
+
+  /* deep space bg */
+  const bg = ctx.createRadialGradient(W*.5,H*.5,0, W*.5,H*.5,Math.max(W,H)*.7);
+  bg.addColorStop(0, 'rgba(6,4,28,.95)');
+  bg.addColorStop(1, 'rgba(0,0,8,1)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  /* galaxy */
+  angle += .0003;
+  drawGalaxy();
+
+  /* stars */
+  for(const s of stars){
+    s.a = Math.max(0, Math.min(1, s.a + s.da));
+    if(s.a <= 0 || s.a >= 1) s.da *= -1;
+    ctx.globalAlpha = s.a;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fillStyle = s.color;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  /* particles */
+  if(Math.random() < .08) spawnParticle();
+  particles = particles.filter(p => p.life > 0);
+  for(const p of particles){
+    p.trail.push({x: p.x, y: p.y});
+    if(p.trail.length > 18) p.trail.shift();
+    p.x += p.vx; p.y += p.vy;
+    p.life -= p.decay;
+
+    /* trail */
+    for(let t = 1; t < p.trail.length; t++){
+      const ta = (t / p.trail.length) * p.life * .7;
+      ctx.beginPath();
+      ctx.moveTo(p.trail[t-1].x, p.trail[t-1].y);
+      ctx.lineTo(p.trail[t].x,   p.trail[t].y);
+      ctx.strokeStyle = p.color;
+      ctx.globalAlpha = ta;
+      ctx.lineWidth = p.r * (t / p.trail.length);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = p.life;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = p.color;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = p.color;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  }
+
+  requestAnimationFrame(frame);
+}
+frame();
+
+/* ═══════════════════════════════════════════
+   CLOCK LOGIC
+═══════════════════════════════════════════ */
+const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let is24h = false;
+
+function pad(n){ return String(n).padStart(2,'0'); }
+
+function toggleFormat(){
+  is24h = !is24h;
+  document.body.classList.toggle('h24', is24h);
+  document.getElementById('fmt-toggle').classList.toggle('on', is24h);
+  document.getElementById('lbl-12').classList.toggle('active', !is24h);
+  document.getElementById('lbl-24').classList.toggle('active', is24h);
+  tick();
+}
+
+function tick(){
+  const now    = new Date();
+  const utcMs  = now.getTime() + now.getTimezoneOffset() * 60000;
+  const utcD   = new Date(utcMs);
+  const istD   = new Date(utcMs + 5.5 * 3600000);
+
+  [
+    { d: istD, prefix: 'ist' },
+    { d: utcD, prefix: 'utc' }
+  ].forEach(({ d, prefix }) => {
+    let h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
+    let ampm = h >= 12 ? 'PM' : 'AM';
+    let displayH;
+    if(is24h){
+      displayH = pad(h);
+    } else {
+      displayH = pad(h % 12 || 12);
+    }
+    document.getElementById(prefix + '-time').textContent = `${displayH}:${pad(m)}:${pad(s)}`;
+    document.getElementById(prefix + '-ampm').textContent = ampm;
+    document.getElementById(prefix + '-bar').style.width  = (s / 59 * 100) + '%';
+    document.getElementById(prefix + '-date').textContent =
+      `${DAYS[d.getDay()]}, ${pad(d.getDate())} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  });
+
+  document.getElementById('epoch').textContent =
+    Math.floor(now.getTime() / 1000).toLocaleString();
+}
+
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
