@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Galaxy Clock by Annapurna P</title>
+<title>Galaxy Clock</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -12,22 +12,22 @@
     --cyan:  #00f5ff;
     --pink:  #ff2d78;
     --gold:  #ffd700;
+    --violet: #a78bfa;
+    --green: #00ff88;
     --dim:   #0a0a1a;
   }
 
   html, body {
-    width: 100%; height: 100%;
+    width: 100%; min-height: 100%;
     background: #000008;
-    overflow: hidden;
+    overflow-x: hidden;
     font-family: 'Rajdhani', sans-serif;
     color: #fff;
     cursor: crosshair;
   }
 
-  /* ── CANVAS (galaxy + particles) ── */
   #bg { position: fixed; inset: 0; z-index: 0; }
 
-  /* ── NEBULA GLOW LAYERS ── */
   .nebula {
     position: fixed; border-radius: 50%; filter: blur(90px);
     z-index: 1; pointer-events: none; animation: drift 20s ease-in-out infinite alternate;
@@ -42,7 +42,6 @@
         animation-delay: -5s; }
   @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(30px,20px) scale(1.08); } }
 
-  /* ── SCAN  LINE ── */
   .scanline {
     position: fixed; inset: 0; z-index: 2; pointer-events: none;
     background: repeating-linear-gradient(
@@ -51,16 +50,14 @@
     );
   }
 
-  /* ── LAYOUT ── */
   #app {
     position: relative; z-index: 10;
     display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    width: 100%; height: 100vh;
+    align-items: center;
+    width: 100%; padding: 60px 20px 80px;
     gap: 0;
   }
 
-  /* ── HEADER ── */
   .header {
     text-align: center; margin-bottom: 36px;
     animation: fadeDown .8s ease both;
@@ -77,7 +74,6 @@
     font-weight: 900; letter-spacing: .12em;
     background: linear-gradient(90deg, var(--cyan), #a78bfa, var(--pink));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    text-shadow: none;
     filter: drop-shadow(0 0 18px rgba(0,245,255,.4));
   }
   .header .subtitle {
@@ -85,7 +81,6 @@
     color: rgba(255,255,255,.35); margin-top: 4px;
   }
 
-  /* ── CARDS GRID ── */
   .cards {
     display: grid; grid-template-columns: 1fr 1fr;
     gap: 20px; width: min(660px, 92vw);
@@ -107,7 +102,6 @@
     border-top: 1.5px solid; border-right: 1.5px solid;
     border-radius: 0 4px 0 0; opacity: .5;
   }
-  /* glass shine sweep */
   .card .shine {
     position: absolute; inset: 0; border-radius: 16px;
     background: linear-gradient(
@@ -132,17 +126,9 @@
   }
   .card:hover { transform: translateY(-4px); }
 
-  /* accent top bar */
   .card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
     border-radius: 16px 16px 0 0;
-  }
-  /* corner brackets */
-  .card::after {
-    content: ''; position: absolute;
-    top: 8px; right: 10px; width: 14px; height: 14px;
-    border-top: 1.5px solid; border-right: 1.5px solid;
-    border-radius: 0 4px 0 0; opacity: .5;
   }
   .card-inner-corner {
     position: absolute; bottom: 8px; left: 10px;
@@ -151,13 +137,11 @@
     border-radius: 0 0 0 4px; opacity: .5;
   }
 
-  /* IST — cyan */
   .card-ist { border-color: rgba(0,245,255,.2); }
   .card-ist:hover { border-color: rgba(0,245,255,.45); box-shadow: 0 0 40px rgba(0,245,255,.08); }
   .card-ist::before { background: linear-gradient(90deg, var(--cyan), transparent); }
   .card-ist::after, .card-ist .card-inner-corner { border-color: var(--cyan); }
 
-  /* UTC — pink */
   .card-utc { border-color: rgba(255,45,120,.2); }
   .card-utc:hover { border-color: rgba(255,45,120,.45); box-shadow: 0 0 40px rgba(255,45,120,.08); }
   .card-utc::before { background: linear-gradient(90deg, var(--pink), transparent); }
@@ -182,7 +166,6 @@
   .card-ist .offset-tag { border-color: var(--cyan); color: var(--cyan); }
   .card-utc .offset-tag { border-color: var(--pink); color: var(--pink); }
 
-  /* big time */
   .time-display {
     font-family: 'Share Tech Mono', monospace;
     font-size: clamp(30px, 5.5vw, 46px);
@@ -209,7 +192,6 @@
   .card-ist .ampm { color: var(--cyan); }
   .card-utc .ampm { color: var(--pink); }
 
-  /* seconds bar */
   .sec-track {
     height: 3px; border-radius: 2px;
     background: rgba(255,255,255,.07);
@@ -232,7 +214,6 @@
     text-transform: uppercase;
   }
 
-  /* ── EPOCH STRIP ── */
   .epoch-strip {
     width: min(660px, 92vw);
     margin-top: 16px;
@@ -267,7 +248,6 @@
     50%      { opacity:.5; box-shadow: 0 0 0 5px rgba(0,255,136,0); }
   }
 
-  /* ── 24H TOGGLE ── */
   .toggle-wrap {
     display: flex; align-items: center; gap: 10px;
     margin-bottom: 28px;
@@ -307,12 +287,264 @@
     box-shadow: 0 0 8px var(--cyan);
   }
 
-  /* hide AM/PM in 24h mode */
   body.h24 .ampm { opacity: 0; pointer-events: none; }
 
-  /* ── ENTER ANIMATIONS ── */
+  /* ── CONVERTER SECTION ── */
+  .converter-section {
+    width: min(660px, 92vw);
+    margin-top: 28px;
+    animation: fadeUp .9s ease .45s both;
+  }
+
+  .converter-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 16px;
+  }
+  .converter-header-line {
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(167,139,250,.3), transparent);
+  }
+  .converter-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px; letter-spacing: .35em;
+    color: var(--violet); white-space: nowrap;
+    filter: drop-shadow(0 0 8px rgba(167,139,250,.4));
+  }
+
+  .converter-card {
+    position: relative; overflow: hidden;
+    background: rgba(167,139,250,.04);
+    border: 1px solid rgba(167,139,250,.2);
+    border-radius: 16px;
+    padding: 26px 24px 24px;
+    backdrop-filter: blur(12px);
+    transition: border-color .3s;
+  }
+  .converter-card:hover {
+    border-color: rgba(167,139,250,.4);
+    box-shadow: 0 0 40px rgba(167,139,250,.07);
+  }
+  .converter-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    border-radius: 16px 16px 0 0;
+    background: linear-gradient(90deg, var(--violet), transparent);
+  }
+  .converter-card::after {
+    content: ''; position: absolute;
+    top: 8px; right: 10px; width: 14px; height: 14px;
+    border-top: 1.5px solid var(--violet); border-right: 1.5px solid var(--violet);
+    border-radius: 0 4px 0 0; opacity: .4;
+  }
+  .conv-inner-corner {
+    position: absolute; bottom: 8px; left: 10px;
+    width: 14px; height: 14px;
+    border-bottom: 1.5px solid var(--violet); border-left: 1.5px solid var(--violet);
+    border-radius: 0 0 0 4px; opacity: .4;
+  }
+
+  /* direction toggle */
+  .direction-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 20px;
+  }
+  .dir-btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: .18em;
+    padding: 7px 16px; border-radius: 8px; border: 1px solid;
+    cursor: pointer; transition: all .2s ease;
+    background: transparent;
+  }
+  .dir-btn-ist {
+    border-color: rgba(0,245,255,.3); color: rgba(0,245,255,.5);
+  }
+  .dir-btn-ist.active {
+    border-color: var(--cyan); color: #000;
+    background: var(--cyan);
+    box-shadow: 0 0 18px rgba(0,245,255,.4);
+  }
+  .dir-btn-utc {
+    border-color: rgba(255,45,120,.3); color: rgba(255,45,120,.5);
+  }
+  .dir-btn-utc.active {
+    border-color: var(--pink); color: #fff;
+    background: var(--pink);
+    box-shadow: 0 0 18px rgba(255,45,120,.4);
+  }
+  .dir-arrow {
+    font-size: 18px; color: rgba(255,255,255,.2);
+    flex-shrink: 0; padding: 0 4px;
+  }
+  .dir-label {
+    font-size: 11px; letter-spacing: .15em;
+    color: rgba(255,255,255,.3);
+    margin-left: auto;
+    font-family: 'Orbitron', monospace;
+  }
+
+  /* input row */
+  .input-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr auto;
+    gap: 10px; align-items: end;
+    margin-bottom: 18px;
+  }
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+  .field-label {
+    font-size: 10px; letter-spacing: .22em;
+    color: rgba(255,255,255,.3); text-transform: uppercase;
+    font-family: 'Orbitron', monospace;
+  }
+
+  .time-input {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 15px; letter-spacing: .05em;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 8px; padding: 9px 12px;
+    color: #fff; width: 100%;
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+    appearance: none; -webkit-appearance: none;
+  }
+  .time-input:focus {
+    border-color: rgba(167,139,250,.6);
+    box-shadow: 0 0 14px rgba(167,139,250,.2);
+  }
+  .time-input::placeholder { color: rgba(255,255,255,.2); }
+
+  /* date input */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(.4);
+    cursor: pointer;
+  }
+
+  .convert-btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: .2em;
+    padding: 10px 18px; border-radius: 8px;
+    border: 1px solid var(--violet);
+    color: var(--violet); background: rgba(167,139,250,.08);
+    cursor: pointer; white-space: nowrap;
+    transition: all .2s ease;
+    align-self: end;
+  }
+  .convert-btn:hover {
+    background: rgba(167,139,250,.18);
+    box-shadow: 0 0 20px rgba(167,139,250,.3);
+    transform: translateY(-1px);
+  }
+  .convert-btn:active { transform: translateY(0); }
+
+  /* result */
+  .result-panel {
+    position: relative;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex; align-items: center;
+    gap: 16px;
+    min-height: 64px;
+    transition: all .35s ease;
+    overflow: hidden;
+  }
+  .result-panel.has-result {
+    border-color: rgba(167,139,250,.25);
+    background: rgba(167,139,250,.06);
+  }
+  .result-icon {
+    font-size: 20px; flex-shrink: 0; opacity: .6;
+  }
+  .result-content { flex: 1; min-width: 0; }
+  .result-label {
+    font-size: 10px; letter-spacing: .25em;
+    color: rgba(255,255,255,.3); text-transform: uppercase;
+    font-family: 'Orbitron', monospace;
+    margin-bottom: 4px;
+  }
+  .result-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(20px, 3.5vw, 30px);
+    font-weight: 900; letter-spacing: .04em; line-height: 1;
+    background: linear-gradient(90deg, var(--violet), var(--cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(167,139,250,.4));
+    opacity: 0; transform: translateY(6px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  .result-date {
+    font-size: 11px; letter-spacing: .08em;
+    color: rgba(255,255,255,.4); margin-top: 3px;
+    opacity: 0; transition: opacity .35s ease .05s;
+  }
+  .result-panel.has-result .result-time,
+  .result-panel.has-result .result-date { opacity: 1; transform: translateY(0); }
+
+  .result-copy {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px; letter-spacing: .2em;
+    padding: 5px 10px; border-radius: 6px;
+    border: 1px solid rgba(167,139,250,.3);
+    color: var(--violet); background: transparent;
+    cursor: pointer; transition: all .2s;
+    flex-shrink: 0;
+    opacity: 0; pointer-events: none;
+  }
+  .result-panel.has-result .result-copy { opacity: 1; pointer-events: auto; }
+  .result-copy:hover { background: rgba(167,139,250,.15); }
+  .result-copy.copied {
+    color: var(--green); border-color: var(--green);
+  }
+
+  .result-placeholder {
+    font-size: 12px; letter-spacing: .12em;
+    color: rgba(255,255,255,.18); text-align: center; width: 100%;
+    font-family: 'Rajdhani', sans-serif;
+  }
+  .result-panel.has-result .result-placeholder { display: none; }
+
+  /* quick presets */
+  .presets-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 14px; flex-wrap: wrap;
+  }
+  .preset-label {
+    font-size: 10px; letter-spacing: .2em;
+    color: rgba(255,255,255,.25);
+    font-family: 'Orbitron', monospace;
+    flex-shrink: 0;
+  }
+  .preset-btn {
+    font-size: 10px; letter-spacing: .12em;
+    padding: 4px 10px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.1);
+    color: rgba(255,255,255,.4); background: transparent;
+    cursor: pointer; transition: all .2s;
+    font-family: 'Rajdhani', sans-serif;
+  }
+  .preset-btn:hover {
+    border-color: rgba(167,139,250,.5);
+    color: var(--violet);
+    background: rgba(167,139,250,.08);
+  }
+
+  /* error state */
+  .error-msg {
+    font-size: 11px; letter-spacing: .1em;
+    color: #ff6b6b; text-align: center; width: 100%;
+    display: none;
+  }
+  .result-panel.has-error .error-msg { display: block; }
+  .result-panel.has-error .result-placeholder { display: none; }
+
   @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
   @keyframes fadeUp   { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+  @media (max-width: 520px) {
+    .input-row { grid-template-columns: 1fr 1fr; }
+    .convert-btn { grid-column: 1 / -1; }
+    .direction-row { flex-wrap: wrap; }
+    .dir-label { margin-left: 0; width: 100%; margin-top: 4px; }
+  }
 </style>
 </head>
 <body>
@@ -340,7 +572,6 @@
   </div>
 
   <div class="cards">
-
     <!-- IST -->
     <div class="card card-ist">
       <div class="shine"></div>
@@ -370,7 +601,6 @@
       <div class="date-line" id="utc-date">—</div>
       <div class="zone-full">Coordinated Universal Time</div>
     </div>
-
   </div>
 
   <div class="epoch-strip">
@@ -379,12 +609,88 @@
     <span class="live-pill"><span class="live-dot"></span>LIVE</span>
   </div>
 
+  <!-- ── CONVERTER ── -->
+  <div class="converter-section">
+    <div class="converter-header">
+      <div class="converter-header-line"></div>
+      <div class="converter-title">&#x25C6; TIMESTAMP CONVERTER &#x25C6;</div>
+      <div class="converter-header-line"></div>
+    </div>
+
+    <div class="converter-card">
+      <div class="conv-inner-corner"></div>
+
+      <!-- direction -->
+      <div class="direction-row">
+        <button class="dir-btn dir-btn-ist active" id="btn-ist-to-utc" onclick="setDirection('ist-to-utc')">IST</button>
+        <span class="dir-arrow">&#x2192;</span>
+        <button class="dir-btn dir-btn-utc" id="btn-utc-to-ist" onclick="setDirection('utc-to-ist')">UTC</button>
+        <span class="dir-arrow" style="color:rgba(255,255,255,.08)">&#x2022;</span>
+        <button class="dir-btn dir-btn-utc active" id="btn-utc-to-ist2" onclick="setDirection('utc-to-ist')" style="display:none"></button>
+
+        <div style="flex:1"></div>
+        <!-- swap -->
+        <button onclick="swapDirection()" style="
+          font-family:'Orbitron',monospace; font-size:10px; letter-spacing:.15em;
+          padding:6px 12px; border-radius:8px; border:1px solid rgba(255,255,255,.12);
+          color:rgba(255,255,255,.35); background:transparent; cursor:pointer;
+          transition:all .2s;
+        " onmouseover="this.style.borderColor='rgba(167,139,250,.5)';this.style.color='#a78bfa'"
+           onmouseout="this.style.borderColor='rgba(255,255,255,.12)';this.style.color='rgba(255,255,255,.35)'">
+          &#x21C4; SWAP
+        </button>
+      </div>
+
+      <!-- inputs -->
+      <div class="input-row">
+        <div class="field-group">
+          <label class="field-label" id="input-zone-label">IST DATE</label>
+          <input class="time-input" type="date" id="conv-date" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">TIME (HH:MM)</label>
+          <input class="time-input" type="text" id="conv-time"
+                 placeholder="14:30" maxlength="5"
+                 oninput="autoColonTime(this)" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">SECONDS</label>
+          <input class="time-input" type="number" id="conv-secs"
+                 placeholder="00" min="0" max="59"
+                 style="width:100%" />
+        </div>
+        <button class="convert-btn" onclick="convert()">CONVERT</button>
+      </div>
+
+      <!-- result -->
+      <div class="result-panel" id="result-panel">
+        <span class="result-placeholder">Enter a timestamp above and hit CONVERT</span>
+        <span class="error-msg" id="error-msg">Invalid time — please use HH:MM format</span>
+        <span class="result-icon" id="result-icon" style="display:none">⟡</span>
+        <div class="result-content" id="result-content" style="display:none">
+          <div class="result-label" id="result-label">UTC</div>
+          <div class="result-time" id="result-time">—</div>
+          <div class="result-date" id="result-date">—</div>
+        </div>
+        <button class="result-copy" id="copy-btn" onclick="copyResult()">COPY</button>
+      </div>
+
+      <!-- quick presets -->
+      <div class="presets-row">
+        <span class="preset-label">QUICK:</span>
+        <button class="preset-btn" onclick="setPreset('now')">Now</button>
+        <button class="preset-btn" onclick="setPreset('midnight')">Midnight</button>
+        <button class="preset-btn" onclick="setPreset('noon')">Noon</button>
+        <button class="preset-btn" onclick="setPreset('9am')">9:00 AM</button>
+        <button class="preset-btn" onclick="setPreset('6pm')">6:00 PM</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-/* ═══════════════════════════════════════════
-   GALAXY + PARTICLE CANVAS
-═══════════════════════════════════════════ */
+/* ═══ GALAXY + PARTICLES ═══ */
 const canvas = document.getElementById('bg');
 const ctx    = canvas.getContext('2d');
 let W, H, stars = [], particles = [];
@@ -396,39 +702,33 @@ function resize(){
 resize();
 window.addEventListener('resize', () => { resize(); initStars(); });
 
-/* static stars */
 function initStars(){
   stars = [];
   const n = Math.floor(W * H / 2200);
   for(let i = 0; i < n; i++){
     stars.push({
-      x: Math.random() * W,
-      y: Math.random() * H,
+      x: Math.random() * W, y: Math.random() * H,
       r: Math.random() * 1.4 + .2,
-      a: Math.random(),
-      da: (Math.random() - .5) * .008,
+      a: Math.random(), da: (Math.random() - .5) * .008,
       color: ['#ffffff','#a0d4ff','#ffd6f6','#c0fff0'][Math.floor(Math.random()*4)]
     });
   }
 }
 initStars();
 
-/* shooting particles */
 function spawnParticle(){
   const side = Math.random();
   let x, y, vx, vy;
   if(side < .5){ x = Math.random() * W; y = -5; vx = (Math.random()-.5)*.6; vy = Math.random()*1.2+.4; }
   else          { x = -5; y = Math.random() * H; vx = Math.random()*1.2+.4; vy = (Math.random()-.5)*.6; }
   particles.push({
-    x, y, vx, vy,
-    life: 1, decay: Math.random()*.004+.002,
+    x, y, vx, vy, life: 1, decay: Math.random()*.004+.002,
     r: Math.random()*1.8+.5,
     color: ['#00f5ff','#ff2d78','#a78bfa','#ffd700','#00ff88'][Math.floor(Math.random()*5)],
     trail: []
   });
 }
 
-/* draw rotating galaxy core */
 let angle = 0;
 function drawGalaxy(){
   const cx = W * .5, cy = H * .5;
@@ -455,71 +755,46 @@ function drawGalaxy(){
 
 function frame(){
   ctx.clearRect(0, 0, W, H);
-
-  /* deep space bg */
   const bg = ctx.createRadialGradient(W*.5,H*.5,0, W*.5,H*.5,Math.max(W,H)*.7);
   bg.addColorStop(0, 'rgba(6,4,28,.95)');
   bg.addColorStop(1, 'rgba(0,0,8,1)');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
-
-  /* galaxy */
-  angle += .0003;
-  drawGalaxy();
-
-  /* stars */
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  angle += .0003; drawGalaxy();
   for(const s of stars){
     s.a = Math.max(0, Math.min(1, s.a + s.da));
     if(s.a <= 0 || s.a >= 1) s.da *= -1;
     ctx.globalAlpha = s.a;
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-    ctx.fillStyle = s.color;
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fillStyle = s.color; ctx.fill();
   }
   ctx.globalAlpha = 1;
-
-  /* particles */
   if(Math.random() < .08) spawnParticle();
   particles = particles.filter(p => p.life > 0);
   for(const p of particles){
     p.trail.push({x: p.x, y: p.y});
     if(p.trail.length > 18) p.trail.shift();
-    p.x += p.vx; p.y += p.vy;
-    p.life -= p.decay;
-
-    /* trail */
+    p.x += p.vx; p.y += p.vy; p.life -= p.decay;
     for(let t = 1; t < p.trail.length; t++){
       const ta = (t / p.trail.length) * p.life * .7;
       ctx.beginPath();
       ctx.moveTo(p.trail[t-1].x, p.trail[t-1].y);
       ctx.lineTo(p.trail[t].x,   p.trail[t].y);
-      ctx.strokeStyle = p.color;
-      ctx.globalAlpha = ta;
-      ctx.lineWidth = p.r * (t / p.trail.length);
-      ctx.stroke();
+      ctx.strokeStyle = p.color; ctx.globalAlpha = ta;
+      ctx.lineWidth = p.r * (t / p.trail.length); ctx.stroke();
     }
     ctx.globalAlpha = p.life;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
     ctx.fillStyle = p.color;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = p.color;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 10; ctx.shadowColor = p.color; ctx.fill();
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
   }
-
   requestAnimationFrame(frame);
 }
 frame();
 
-/* ═══════════════════════════════════════════
-   CLOCK LOGIC
-═══════════════════════════════════════════ */
+/* ═══ CLOCK ═══ */
 const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
 let is24h = false;
 
 function pad(n){ return String(n).padStart(2,'0'); }
@@ -534,36 +809,160 @@ function toggleFormat(){
 }
 
 function tick(){
-  const now    = new Date();
-  const utcMs  = now.getTime() + now.getTimezoneOffset() * 60000;
-  const utcD   = new Date(utcMs);
-  const istD   = new Date(utcMs + 5.5 * 3600000);
-
-  [
-    { d: istD, prefix: 'ist' },
-    { d: utcD, prefix: 'utc' }
-  ].forEach(({ d, prefix }) => {
+  const now   = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const utcD  = new Date(utcMs);
+  const istD  = new Date(utcMs + 5.5 * 3600000);
+  [{ d: istD, prefix: 'ist' }, { d: utcD, prefix: 'utc' }].forEach(({ d, prefix }) => {
     let h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
     let ampm = h >= 12 ? 'PM' : 'AM';
-    let displayH;
-    if(is24h){
-      displayH = pad(h);
-    } else {
-      displayH = pad(h % 12 || 12);
-    }
-    document.getElementById(prefix + '-time').textContent = `${displayH}:${pad(m)}:${pad(s)}`;
-    document.getElementById(prefix + '-ampm').textContent = ampm;
-    document.getElementById(prefix + '-bar').style.width  = (s / 59 * 100) + '%';
-    document.getElementById(prefix + '-date').textContent =
+    let displayH = is24h ? pad(h) : pad(h % 12 || 12);
+    document.getElementById(prefix+'-time').textContent = `${displayH}:${pad(m)}:${pad(s)}`;
+    document.getElementById(prefix+'-ampm').textContent = ampm;
+    document.getElementById(prefix+'-bar').style.width = (s / 59 * 100) + '%';
+    document.getElementById(prefix+'-date').textContent =
       `${DAYS[d.getDay()]}, ${pad(d.getDate())} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
   });
-
-  document.getElementById('epoch').textContent =
-    Math.floor(now.getTime() / 1000).toLocaleString();
+  document.getElementById('epoch').textContent = Math.floor(now.getTime() / 1000).toLocaleString();
 }
-
 tick();
 setInterval(tick, 1000);
+
+/* ═══ CONVERTER ═══ */
+let direction = 'ist-to-utc'; // 'ist-to-utc' | 'utc-to-ist'
+let lastResultStr = '';
+
+function setDirection(dir){
+  direction = dir;
+  const isItoU = dir === 'ist-to-utc';
+  document.getElementById('btn-ist-to-utc').classList.toggle('active', isItoU);
+  document.getElementById('btn-ist-to-utc').classList.toggle('dir-btn-ist', true);
+  document.getElementById('btn-utc-to-ist').classList.toggle('active', !isItoU);
+  document.getElementById('input-zone-label').textContent = isItoU ? 'IST DATE' : 'UTC DATE';
+  clearResult();
+}
+
+function swapDirection(){
+  setDirection(direction === 'ist-to-utc' ? 'utc-to-ist' : 'ist-to-utc');
+}
+
+function autoColonTime(input){
+  let v = input.value.replace(/[^0-9]/g, '');
+  if(v.length >= 3) v = v.slice(0,2) + ':' + v.slice(2,4);
+  input.value = v;
+}
+
+function setPreset(p){
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const ref = direction === 'ist-to-utc' ? new Date(utcMs + 5.5*3600000) : new Date(utcMs);
+
+  const y = ref.getFullYear(), mo = pad(ref.getMonth()+1), d = pad(ref.getDate());
+  document.getElementById('conv-date').value = `${y}-${mo}-${d}`;
+  document.getElementById('conv-secs').value = '00';
+
+  if(p === 'now'){
+    document.getElementById('conv-time').value = `${pad(ref.getHours())}:${pad(ref.getMinutes())}`;
+    document.getElementById('conv-secs').value = pad(ref.getSeconds());
+  } else if(p === 'midnight') document.getElementById('conv-time').value = '00:00';
+  else if(p === 'noon')       document.getElementById('conv-time').value = '12:00';
+  else if(p === '9am')        document.getElementById('conv-time').value = '09:00';
+  else if(p === '6pm')        document.getElementById('conv-time').value = '18:00';
+  convert();
+}
+
+function clearResult(){
+  const panel = document.getElementById('result-panel');
+  panel.classList.remove('has-result','has-error');
+  document.getElementById('result-icon').style.display = 'none';
+  document.getElementById('result-content').style.display = 'none';
+}
+
+function convert(){
+  const dateVal = document.getElementById('conv-date').value;
+  const timeVal = document.getElementById('conv-time').value.trim();
+  const secsVal = parseInt(document.getElementById('conv-secs').value) || 0;
+
+  const panel     = document.getElementById('result-panel');
+  const errorMsg  = document.getElementById('error-msg');
+
+  panel.classList.remove('has-result','has-error');
+
+  // validate
+  const timeMatch = timeVal.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+  if(!timeVal || !timeMatch){
+    panel.classList.add('has-error');
+    errorMsg.textContent = 'Invalid time — please use HH:MM (e.g. 14:30)';
+    return;
+  }
+  if(!dateVal){
+    panel.classList.add('has-error');
+    errorMsg.textContent = 'Please select a date';
+    return;
+  }
+
+  const [yy, mm, dd] = dateVal.split('-').map(Number);
+  const hh = parseInt(timeMatch[1]);
+  const mn = parseInt(timeMatch[2]);
+  const ss = Math.min(59, Math.max(0, secsVal));
+
+  let resultDate;
+  if(direction === 'ist-to-utc'){
+    // Build IST moment, subtract 5:30
+    const istMs = Date.UTC(yy, mm-1, dd, hh, mn, ss) - (5*60+30)*60*1000;
+    resultDate = new Date(istMs);
+  } else {
+    // Build UTC moment, add 5:30
+    const utcMs = Date.UTC(yy, mm-1, dd, hh, mn, ss) + (5*60+30)*60*1000;
+    resultDate = new Date(utcMs);
+  }
+
+  const rH = resultDate.getUTCHours();
+  const rM = resultDate.getUTCMinutes();
+  const rS = resultDate.getUTCSeconds();
+  const rDay = resultDate.getUTCDay();
+  const rDt  = resultDate.getUTCDate();
+  const rMo  = resultDate.getUTCMonth();
+  const rYr  = resultDate.getUTCFullYear();
+
+  const outLabel = direction === 'ist-to-utc' ? 'UTC EQUIVALENT' : 'IST EQUIVALENT';
+  const timeStr  = `${pad(rH)}:${pad(rM)}:${pad(rS)}`;
+  const dateStr  = `${DAYS[rDay]}, ${pad(rDt)} ${MONTHS[rMo]} ${rYr}`;
+
+  lastResultStr = `${timeStr}  •  ${dateStr}`;
+
+  document.getElementById('result-label').textContent = outLabel;
+  document.getElementById('result-time').textContent  = timeStr;
+  document.getElementById('result-date').textContent  = dateStr;
+  document.getElementById('result-icon').style.display = 'block';
+  document.getElementById('result-content').style.display = 'block';
+
+  // slight delay so transition fires
+  requestAnimationFrame(() => panel.classList.add('has-result'));
+}
+
+function copyResult(){
+  if(!lastResultStr) return;
+  navigator.clipboard.writeText(lastResultStr).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'COPIED';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// pre-fill today's date
+(function prefillDate(){
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  const ist = new Date(utcMs + 5.5*3600000);
+  const y = ist.getFullYear(), mo = pad(ist.getMonth()+1), d = pad(ist.getDate());
+  document.getElementById('conv-date').value = `${y}-${mo}-${d}`;
+})();
+
+// allow Enter key to convert
+document.getElementById('conv-time').addEventListener('keydown', e => { if(e.key === 'Enter') convert(); });
+document.getElementById('conv-secs').addEventListener('keydown', e => { if(e.key === 'Enter') convert(); });
 </script>
 </body>
 </html>
